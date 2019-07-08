@@ -46,15 +46,15 @@ class HashStoreManager():
                                                          autocommit=False))
         logger.info('Initialize hash store engine')
 
-    def add_hashes(self, clear_serie, hash_serie, field_serie, table_serie):
+    def add_hashes(self, hash_serie, clear_serie, table_name, field_name):
         """Update hash table with newly hashed data
 
         Parameters
         ----------
-        hash_serie: Pandas Serie with hashed values
-        clear_serie: Pandas Serie with clear values
-        table_serie: Pandas Serie with table values
-        field_serie: Pandas Serie with fields values
+        hash_serie=: Pandas Serie with hashed values
+        clear_serie=: Pandas Serie with clear values
+        table_name=: partition table name
+        field_name=: partition field name
 
         Returns
         -------
@@ -64,10 +64,8 @@ class HashStoreManager():
         db_session = self.session_maker()
 
         # rebuild DataFrame from Series objects
-        df = pd.DataFrame({CLEAR_FIELD: clear_serie,
-                           HASH_FIELD: hash_serie,
-                           TABLE_FIELD: table_serie,
-                           FIELDNAME_FIELD: field_serie})
+        df = pd.DataFrame({HASH_FIELD: hash_serie,
+                           CLEAR_FIELD: clear_serie})
         hash_records = df.to_dict(orient='records')
 
         # Create array of arrays containing at most 100 records
@@ -77,8 +75,8 @@ class HashStoreManager():
             for hash_object in hash_records_batch:
                 hash_inst = HashStoreModel(hash=hash_object[HASH_FIELD],
                                            clear=hash_object[CLEAR_FIELD],
-                                           table=hash_object[TABLE_FIELD],
-                                           field=hash_object[FIELDNAME_FIELD])
+                                           table=table_name,
+                                           field=field_name)
                 db_session.merge(hash_inst)
             db_session.commit()
         db_session.close()

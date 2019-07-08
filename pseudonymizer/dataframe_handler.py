@@ -8,6 +8,7 @@ import logging
 
 from pseudonymizer.config.main import CATALOG
 from pseudonymizer.transform import pseudonymize
+from pseudonymizer.hash_store import HASH_FIELD, CLEAR_FIELD
 
 logger = logging.getLogger(__name__)
 
@@ -40,17 +41,10 @@ def pseudonymize_dataframe(df, data_catalog, hash_store, table_name):
                                           field_methods[field],
                                           )
             if field_methods[field] == CATALOG_METHOD['PSEUDONYMIZE']:
-                serie_size = res_df[field].size
-                hash_store.add_hashes(res_df[field],
-                                      df[field],
-                                      pd.Series(np.full(
-                                          (serie_size),
-                                          field)
-                                          ),
-                                      pd.Series(np.full(
-                                          (serie_size),
-                                          table_name)
-                                          )
+                hash_store.add_hashes(hash_serie=res_df[field],
+                                      clear_serie=df[field],
+                                      table_name=table_name,
+                                      field_name=field
                                       )
     return res_df
 
@@ -160,16 +154,17 @@ def depseudonymize_dataframe(df, process_catalog,
             hash_values_df['is_valid'] = True
             df = df.merge(hash_values_df,
                           left_on=field,
-                          right_on='HASH',
+                          right_on=HASH_FIELD,
                           how='left'
                           )
+
             df['is_valid'] = df['is_valid'].fillna(False)
             if df['is_valid'].unique() != [True]:
                 logger.warning('There were some problems')
                 # Possibly raise error here
 
             df = df.drop([field], axis=1)
-            df = df.rename(columns={"CLEAR": field})
+            df = df.rename(columns={CLEAR_FIELD: field})
             df = df[all_fields]
 
     return df
