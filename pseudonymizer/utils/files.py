@@ -18,7 +18,6 @@ def get_table_name(file_path, regex):
     -------
     String
     """
-    regex = '([a-zA-z]+)_\d+\d+\d+.csv'
 
     try:
         logger.debug('Get table name from {}'.format(file_path))
