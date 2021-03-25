@@ -25,7 +25,7 @@ setup(
     ],
     install_requires=[
         "Click==7.0",
-        "PyYAML==5.1.1",
+        "PyYAML==5.4",
         "pandas==0.24.2",
         "SQLAlchemy==1.3.5",
         "xlrd==1.2.0",
